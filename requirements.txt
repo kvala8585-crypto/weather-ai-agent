@@ -1,0 +1,9 @@
+# Dependencies will be added 
+requests
+python-dotenv
+rich
+pydantic
+openai
+beautifulsoup4
+lxml
+httpx
