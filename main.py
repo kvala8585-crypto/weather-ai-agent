@@ -5,6 +5,9 @@ from app.prediction.prediction_engine import PredictionEngine
 from app.trading.paper_trader import PaperTrader
 from app.storage.trade_storage import TradeStorage
 from app.analytics.statistics import Statistics
+from app.scraping.weather_news import WeatherNewsScraper
+from app.notifications.telegram_notifier import TelegramNotifier
+from app.hermes.flow import HermesFlow
 
 
 def main():
@@ -16,6 +19,9 @@ def main():
     paper_trader = PaperTrader()
     trade_storage = TradeStorage()
     statistics = Statistics()
+    news_scraper = WeatherNewsScraper()
+    telegram = TelegramNotifier() 
+    hermes_flow = HermesFlow()
 
     print("=" * 60)
     print("           WEATHER AI AGENT")
@@ -37,38 +43,67 @@ def main():
 
         try:
 
+            # Weather Data
             weather = service.get_weather(city)
 
+            # Weather Report
             report = report_generator.generate_report(weather)
+            # Hermes Analysis
+            hermes_result = hermes_flow.run(city)
 
+            # Weather News
+            news = news_scraper.get_weather_news(city)
+
+            # AI Analysis
             analysis = ai_agent.analyze_weather(report)
 
+            # Prediction
             prediction = prediction_engine.generate_prediction(analysis)
 
+            # Paper Trade
             order = paper_trader.place_order(
                 city,
                 prediction,
                 weather
             )
 
-            # Save Trade History
+            # Save Trade
             trade_storage.save_trade(order)
+
+            # Telegram Alert
+            telegram.send_trade_alert(order)
 
             print("\nTrade saved successfully.")
             print("-" * 50)
 
-            # Show Statistics
+            # Statistics
             statistics.show_statistics()
 
+            # Weather News
+            print("\nWEATHER NEWS")
+            print("-" * 50)
+
+            if isinstance(news, list):
+                if len(news) == 0:
+                    print("No weather news found.")
+                else:
+                    for index, item in enumerate(news, start=1):
+                        print(f"{index}. {item}")
+            else:
+                print(news)
+
+            # AI Analysis
             print("\nAI ANALYSIS")
             print("-" * 50)
             print(analysis)
 
+            # Prediction
             print("\nPREDICTION")
             print("-" * 50)
             print(f"Decision : {prediction['decision']}")
             print(f"Risk     : {prediction['risk']}")
 
+            # Paper Trade
             print("\nPAPER TRADE")
             print("-" * 50)
             print(f"Date        : {order['date']}")
@@ -79,9 +114,22 @@ def main():
             print(f"Temperature : {order['temperature']} °C")
             print(f"Condition   : {order['condition']}")
 
+            # Weather Report
             print("\nWEATHER REPORT")
             print("-" * 50)
             print(report)
+            # Hermes Framework
+            print("\nHERMES FRAMEWORK")
+            print("-" * 50)
+
+            hermes = hermes_result["hermes"]
+
+            print(f"Framework     : {hermes['framework']}")
+            print(f"Status        : {hermes['status']}")
+            print(f"Summary       : {hermes['summary']}")
+
+            if "report_length" in hermes:
+                print(f"Report Length : {hermes['report_length']}")
 
             print("=" * 60)
             print(f"City        : {weather.city}")
